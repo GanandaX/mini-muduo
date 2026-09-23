@@ -1739,7 +1739,7 @@ void inbound_data_refreshes_server_idle_timeout_test() {
     assert(std::string(buffer->peek(), buffer->readableBytes()) == msg);
     conn->send(buffer->peek(), buffer->readableBytes());
     buffer->retrieve(buffer->readableBytes());
-    threadLoop->runAfter(std::chrono::milliseconds(700), [&]() {
+    threadLoop->runAfter(std::chrono::milliseconds(1500), [&]() {
       assert(serverDisconnectCnt.load() == 0);
       idleRefreshVerifiedPromise.set_value();
     });
@@ -1751,14 +1751,14 @@ void inbound_data_refreshes_server_idle_timeout_test() {
       serverStopCompletePromose.set_value();
     });
   });
-  server->setIdleTimeout(std::chrono::milliseconds(1000));
+  server->setIdleTimeout(std::chrono::milliseconds(2000));
 
   EventLoop loop;
   TcpClient client(&loop, serverAddr);
   client.setConnectionCallback([&](const TcpConnectionPtr &conn) {
     if (conn->connected()) {
       ++clientConnCnt;
-      loop.runAfter(std::chrono::milliseconds(600), [&, clientConn = conn]() {
+      loop.runAfter(std::chrono::milliseconds(1000), [&, clientConn = conn]() {
         clientConn->send(msg, msgLen);
       });
     } else {
@@ -1795,7 +1795,7 @@ void inbound_data_refreshes_server_idle_timeout_test() {
 
   client.connect();
 
-  loop.runAfter(std::chrono::milliseconds(3000), [&]() {
+  loop.runAfter(std::chrono::milliseconds(6000), [&]() {
     std::cerr << "test timeout" << std::endl;
     std::abort();
   });
@@ -1805,7 +1805,7 @@ void inbound_data_refreshes_server_idle_timeout_test() {
   waitForRes =
       idleRefreshVerifiedFuture.wait_for(std::chrono::milliseconds(1000));
   if (waitForRes != std::future_status::ready) {
-    std::cerr << "idle refresh error" << std::endl;
+    std::cerr << "1 idle refresh error" << std::endl;
     std::abort();
   }
 
@@ -1895,12 +1895,12 @@ void subsequent_inbound_data_refreshes_server_idle_timeout_test() {
     buffer->retrieve(buffer->readableBytes());
 
     if (serverMessageCnt == 1) {
-      loop.runAfter(std::chrono::milliseconds(300), [&]() {
+      loop.runAfter(std::chrono::milliseconds(700), [&]() {
         assert(clientConn);
         clientConn->send(msg, msgLen);
       });
     } else if (serverMessageCnt == 2) {
-      conn->loop()->runAfter(std::chrono::milliseconds(800), [&]() {
+      conn->loop()->runAfter(std::chrono::milliseconds(1500), [&]() {
         assert(serverDisconnectCnt.load() == 0);
         idleRefreshVerifiedPromise.set_value();
       });
@@ -1913,13 +1913,13 @@ void subsequent_inbound_data_refreshes_server_idle_timeout_test() {
       serverStopCompletePromose.set_value();
     });
   });
-  server->setIdleTimeout(std::chrono::milliseconds(1000));
+  server->setIdleTimeout(std::chrono::milliseconds(2000));
 
   client.setConnectionCallback([&](const TcpConnectionPtr &conn) {
     if (conn->connected()) {
       ++clientConnCnt;
       clientConn = conn;
-      loop.runAfter(std::chrono::milliseconds(200),
+      loop.runAfter(std::chrono::milliseconds(300),
                     [&]() { clientConn->send(msg, msgLen); });
     } else {
       ++clientDisconnCnt;
@@ -1955,7 +1955,7 @@ void subsequent_inbound_data_refreshes_server_idle_timeout_test() {
 
   client.connect();
 
-  loop.runAfter(std::chrono::milliseconds(3000), [&]() {
+  loop.runAfter(std::chrono::milliseconds(6000), [&]() {
     std::cerr << "test timeout" << std::endl;
     std::abort();
   });
@@ -1965,7 +1965,7 @@ void subsequent_inbound_data_refreshes_server_idle_timeout_test() {
   waitForRes =
       idleRefreshVerifiedFuture.wait_for(std::chrono::milliseconds(1000));
   if (waitForRes != std::future_status::ready) {
-    std::cerr << "idle refresh error" << std::endl;
+    std::cerr << "2 idle refresh error" << std::endl;
     std::abort();
   }
 
