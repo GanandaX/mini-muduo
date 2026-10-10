@@ -16,8 +16,10 @@ public:
   void onMessage(const TcpConnectionPtr &conn, Buffer *buffer);
   void setMessageCallback(StringMessageCallback cb);
 
-private:
+public:
   static constexpr size_t kMaxMessageSize = 64 << 20;
+
+private:
   static constexpr size_t kHeaderLen = sizeof(uint32_t);
 
   StringMessageCallback messageCallback_;
